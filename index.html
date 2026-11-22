@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <!-- Codificación de caracteres UTF-8 para soportar acentos y emojis -->
+  <meta charset="UTF-8">
+
+  <!-- Configuración responsive para dispositivos móviles -->
+  <!-- width=device-width: ajusta al ancho del dispositivo -->
+  <!-- initial-scale=1.0: zoom inicial al 100% -->
+  <!-- maximum-scale=1.0: evita que el usuario haga zoom -->
+  <!-- user-scalable=no: desactiva el zoom manual -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+  <!-- Color de la barra de estado del navegador móvil -->
+  <meta name="theme-color" content="#0F0F1A">
+
+  <!-- Título de la página que aparece en la pestaña del navegador -->
+  <title>Sabor Digital — Restaurante Inteligente</title>
+
+  <!-- ===== RECURSOS EXTERNOS ===== -->
+
+  <!-- Font Awesome: librería de iconos vectoriales (CDN) -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+  <!-- QRCode.js: librería para generar códigos QR dinámicamente (CDN) -->
+  <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+
+  <!-- Hoja de estilos principal del proyecto -->
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+  <!-- ============================================================
+       COMPONENTES GLOBALES
+       Elementos que están disponibles en todas las pantallas:
+       - Notificaciones toast (mensajes emergentes)
+       - Overlay de carga (spinner)
+       - Modal de detalle del plato
+       ============================================================ -->
+
+  <!-- Contenedor de notificaciones toast (esquina superior derecha) -->
+  <!-- Los toasts se agregan dinámicamente con JavaScript -->
+  <div class="toast-container" id="toast-container"></div>
+
+  <!-- Overlay de carga: se muestra durante procesos como el pago -->
+  <!-- Contiene un spinner animado y texto descriptivo -->
+  <div class="loading-overlay" id="loading-overlay">
+    <div class="loader"></div>  <!-- Spinner circular animado con CSS -->
+    <p>Cargando...</p>          <!-- Texto que se actualiza dinámicamente -->
+  </div>
+
+  <!-- Modal para mostrar el detalle de un plato -->
+  <!-- Se abre al hacer click en una tarjeta del menú -->
+  <!-- El contenido se genera dinámicamente con JavaScript -->
+  <div class="modal-overlay" id="dish-modal">
+    <div class="modal-content" id="dish-modal-content">
+      <!-- El contenido HTML se inyecta desde app.js (función showDishDetail) -->
+    </div>
+  </div>
+
+  <!-- ============================================================
+       PANTALLA 1: BIENVENIDA / ESCANEO QR
+       Primera pantalla que ve el cliente al acceder.
+       Muestra el código QR del restaurante y permite
+       seleccionar la mesa antes de ver la carta.
+       ============================================================ -->
+  <section class="screen active" id="welcome">
+    <!-- "active" indica que esta es la pantalla visible al cargar -->
+
+    <div class="welcome-content">
+      <!-- Logo animado del restaurante (emoji con efecto de flotación) -->
+      <div class="welcome-logo">🍽️</div>
+
+      <!-- Nombre del restaurante con texto degradado -->
+      <h1 class="welcome-title">Sabor Digital</h1>
+
+      <!-- Eslogan del restaurante -->
+      <p class="welcome-subtitle">Una experiencia gastronómica inteligente</p>
+
+      <!-- Contenedor del código QR generado dinámicamente -->
+      <!-- La librería QRCode.js inserta un canvas aquí -->
+      <div class="qr-container">
+        <div id="qr-code"></div>
+      </div>
+
+      <!-- Instrucción para el usuario con icono -->
+      <p class="qr-label">
+        <i class="fas fa-qrcode"></i> <!-- Icono de QR de Font Awesome -->
+        Escanea el código QR en tu mesa
+      </p>
+
+      <!-- Selector de mesa: el cliente elige su número de mesa -->
+      <div class="table-selector">
+        <label>Selecciona tu mesa:</label>
+        <select id="table-select">
+          <!-- 10 opciones de mesa disponibles -->
+          <option value="1">Mesa 1</option>
+          <option value="2">Mesa 2</option>
+          <option value="3">Mesa 3</option>
+          <option value="4">Mesa 4</option>
+          <option value="5">Mesa 5</option>
+          <option value="6">Mesa 6</option>
+          <option value="7">Mesa 7</option>
+          <option value="8">Mesa 8</option>
+          <option value="9">Mesa 9</option>
+          <option value="10">Mesa 10</option>
+        </select>
+      </div>
+
+      <!-- Botón principal para acceder a la carta digital -->
+      <!-- Llama a enterMenu() que guarda la mesa y navega al menú -->
+      <button class="btn btn-primary" onclick="enterMenu()" style="margin-top:24px">
+        <i class="fas fa-utensils"></i> <!-- Icono de cubiertos -->
+        Ver Carta Digital
+      </button>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       PANTALLA 2: MENÚ DIGITAL (CARTA)
+       Muestra todos los platos organizados por categorías.
+       Incluye barra de búsqueda, filtros por categoría
+       y tarjetas interactivas para cada plato.
+       ============================================================ -->
+  <section class="screen" id="menu">
+
+    <!-- Header fijo del menú (se queda visible al hacer scroll) -->
+    <div class="menu-header">
+
+      <!-- Fila superior: título y botones de acción -->
+      <div class="menu-header-top">
+        <h1>📖 Nuestra Carta</h1>
+
+        <!-- Botones de acción: asistente virtual y carrito -->
+        <div class="header-actions">
+          <!-- Botón para abrir el asistente virtual (chat con Chef Digital) -->
+          <button class="cart-btn" onclick="initAssistant()" title="Asistente Virtual">
+            🤖
+          </button>
+
+          <!-- Botón del carrito con badge numérico -->
+          <button class="cart-btn" onclick="renderCart(); showScreen('cart')" title="Mi Pedido">
+            🛒
+            <!-- Badge que muestra la cantidad de items (se oculta si es 0) -->
+            <span class="cart-badge hidden" id="cart-badge">0</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Barra de búsqueda en tiempo real -->
+      <!-- Filtra los platos mientras el usuario escribe -->
+      <div class="search-bar">
+        <i class="fas fa-search"></i> <!-- Icono de lupa -->
+        <input type="text" id="search-input" placeholder="Buscar platos, ingredientes...">
+      </div>
+
+      <!-- Tabs de categorías (scroll horizontal en móvil) -->
+      <!-- Cada tab filtra el menú por categoría -->
+      <div class="category-tabs">
+        <!-- Tab "Todo": muestra todos los platos (activo por defecto) -->
+        <button class="cat-tab active" onclick="selectCategory('all')">
+          <span class="cat-emoji">🍽️</span> Todo
+        </button>
+        <!-- Tab "Entradas" -->
+        <button class="cat-tab" onclick="selectCategory('entradas')">
+          <span class="cat-emoji">🥗</span> Entradas
+        </button>
+        <!-- Tab "Platos Fuertes" -->
+        <button class="cat-tab" onclick="selectCategory('principales')">
+          <span class="cat-emoji">🍖</span> Platos Fuertes
+        </button>
+        <!-- Tab "Postres" -->
+        <button class="cat-tab" onclick="selectCategory('postres')">
+          <span class="cat-emoji">🧁</span> Postres
+        </button>
+        <!-- Tab "Bebidas" -->
+        <button class="cat-tab" onclick="selectCategory('bebidas')">
+          <span class="cat-emoji">🥤</span> Bebidas
+        </button>
+      </div>
+    </div>
+
+    <!-- Contenido del menú: aquí se insertan las tarjetas dinámicamente -->
+    <div class="menu-content">
+      <!-- Grid de tarjetas generado por JavaScript (función renderMenu) -->
+      <div class="menu-grid" id="menu-grid"></div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       PANTALLA 3: ASISTENTE VIRTUAL (CHAT)
+       Interfaz de chat con "Chef Digital", el asistente
+       virtual que ayuda al cliente con recomendaciones,
+       filtros y sugerencias personalizadas.
+       ============================================================ -->
+  <section class="screen" id="assistant">
+
+    <!-- Header del chat con avatar e información del asistente -->
+    <div class="assistant-header">
+      <!-- Avatar circular con degradado naranja-dorado -->
+      <div class="assistant-avatar">🤖</div>
+
+      <!-- Nombre y estado del asistente -->
+      <div class="assistant-info">
+        <h3>Chef Digital</h3>
+        <!-- Indicador "En línea" con punto verde animado (CSS ::before) -->
+        <span>En línea</span>
+      </div>
+
+      <!-- Botón para volver al menú -->
+      <button class="btn btn-secondary btn-sm assistant-back" onclick="showScreen('menu')">
+        ← Menú
+      </button>
+    </div>
+
+    <!-- Área de mensajes del chat (scrolleable) -->
+    <!-- Los mensajes se agregan dinámicamente con JavaScript -->
+    <div class="chat-messages" id="chat-messages">
+      <!-- Las burbujas de chat se insertan aquí -->
+    </div>
+
+    <!-- Botones de respuesta rápida para preguntas comunes -->
+    <!-- Al hacer click, envían el texto como si el usuario lo escribiera -->
+    <div class="quick-replies">
+      <button class="quick-reply" onclick="sendQuickReply('¿Qué me recomiendas?')">🌟 Recomendaciones</button>
+      <button class="quick-reply" onclick="sendQuickReply('Opciones vegetarianas')">🥗 Vegetariano</button>
+      <button class="quick-reply" onclick="sendQuickReply('¿Qué postres tienen?')">🍰 Postres</button>
+      <button class="quick-reply" onclick="sendQuickReply('Opciones económicas')">💰 Económico</button>
+      <button class="quick-reply" onclick="sendQuickReply('Platos saludables')">💪 Saludable</button>
+    </div>
+
+    <!-- Área de input para escribir mensajes -->
+    <div class="chat-input-area">
+      <!-- Input de texto (Enter para enviar, configurado en setupEventListeners) -->
+      <input type="text" id="chat-input" placeholder="Escribe tu pregunta...">
+
+      <!-- Botón de enviar mensaje -->
+      <button class="send-btn" onclick="sendChatMessage()">
+        <i class="fas fa-paper-plane"></i> <!-- Icono de avión de papel -->
+      </button>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       PANTALLA 4: CARRITO DE PEDIDOS
+       Lista de platos seleccionados con controles de cantidad,
+       resumen de precios (subtotal, impuestos, total)
+       y botón para proceder al pago.
+       ============================================================ -->
+  <section class="screen" id="cart">
+
+    <!-- Header del carrito -->
+    <div class="cart-header">
+      <h2>🛒 Mi Pedido</h2>
+      <!-- Botón para volver al menú y seguir agregando -->
+      <button class="btn btn-secondary btn-sm" onclick="showScreen('menu')">
+        ← Menú
+      </button>
+    </div>
+
+    <!-- Lista de items del carrito (generada dinámicamente) -->
+    <!-- Muestra estado vacío por defecto, se actualiza con renderCart() -->
+    <div class="cart-items" id="cart-items">
+      <!-- Estado vacío (se reemplaza cuando hay items) -->
+      <div class="cart-empty">
+        <div class="empty-icon">🛒</div>
+        <h3>Tu pedido está vacío</h3>
+        <p>Explora nuestro menú y agrega platos deliciosos</p>
+        <button class="btn btn-primary" onclick="showScreen('menu')" style="margin-top:16px">
+          Ver Menú 📖
+        </button>
+      </div>
+    </div>
+
+    <!-- Resumen de precios (oculto inicialmente, se muestra con items) -->
+    <!-- Contiene subtotal, impuestos, mesa y total -->
+    <div class="cart-summary" id="cart-summary" style="display:none">
+      <!-- Se genera dinámicamente en renderCart() -->
+    </div>
+  </section>
+
+  <!-- ============================================================
+       PANTALLA 5: PAGO
+       Muestra el resumen del pedido y permite seleccionar
+       el método de pago entre varias opciones.
+       ============================================================ -->
+  <section class="screen" id="payment">
+
+    <!-- Header de la pantalla de pago -->
+    <div class="payment-header">
+      <!-- Botón para volver al carrito -->
+      <button class="btn btn-secondary btn-sm" onclick="renderCart(); showScreen('cart')">←</button>
+      <h2>💳 Pago</h2>
+    </div>
+
+    <div class="payment-content">
+
+      <!-- Resumen del pedido (generado dinámicamente en renderPayment) -->
+      <div class="order-summary-card" id="payment-order-summary">
+        <!-- Muestra lista de items con precios y total -->
+      </div>
+
+      <!-- Métodos de pago disponibles -->
+      <div class="payment-methods">
+        <h3>Método de pago</h3>
+
+        <!-- Opción 1: Tarjeta de crédito/débito -->
+        <div class="payment-option" data-method="card" onclick="selectPayment('card')">
+          <div class="payment-option-icon">💳</div>
+          <div class="payment-option-info">
+            <h4>Tarjeta de Crédito/Débito</h4>
+            <span>Visa, Mastercard, Amex</span>
+          </div>
+          <!-- Círculo de selección (se llena al seleccionar) -->
+          <div class="check-mark">✓</div>
+        </div>
+
+        <!-- Opción 2: Pago móvil -->
+        <div class="payment-option" data-method="mobile" onclick="selectPayment('mobile')">
+          <div class="payment-option-icon">📱</div>
+          <div class="payment-option-info">
+            <h4>Pago Móvil</h4>
+            <span>Apple Pay, Google Pay</span>
+          </div>
+          <div class="check-mark">✓</div>
+        </div>
+
+        <!-- Opción 3: Efectivo -->
+        <div class="payment-option" data-method="cash" onclick="selectPayment('cash')">
+          <div class="payment-option-icon">💵</div>
+          <div class="payment-option-info">
+            <h4>Efectivo</h4>
+            <span>Pagar al mesero</span>
+          </div>
+          <div class="check-mark">✓</div>
+        </div>
+
+        <!-- Opción 4: Criptomonedas -->
+        <div class="payment-option" data-method="crypto" onclick="selectPayment('crypto')">
+          <div class="payment-option-icon">₿</div>
+          <div class="payment-option-info">
+            <h4>Criptomonedas</h4>
+            <span>Bitcoin, Ethereum</span>
+          </div>
+          <div class="check-mark">✓</div>
+        </div>
+      </div>
+
+      <!-- Botón para confirmar y procesar el pago -->
+      <!-- Llama a processPayment() que simula el procesamiento -->
+      <button class="btn btn-success btn-block" onclick="processPayment()">
+        ✅ Confirmar y Pagar
+      </button>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       PANTALLA 6: CONFIRMACIÓN DEL PEDIDO
+       Muestra que el pedido fue exitoso con:
+       - Número de orden único
+       - Progreso en tiempo real (recibido → preparando → listo → entregado)
+       - Botón para calificar la experiencia
+       ============================================================ -->
+  <section class="screen" id="confirmation">
+    <div class="confirmation-content">
+
+      <!-- Icono grande de confirmación (check verde con animación de pulso) -->
+      <div class="confirm-icon">✓</div>
+
+      <!-- Mensaje de éxito -->
+      <h2>¡Pedido Confirmado!</h2>
+      <p>Tu pedido ha sido recibido y está siendo preparado</p>
+
+      <!-- Recuadro con el número de orden generado -->
+      <div class="order-number">
+        <span>Número de orden</span>
+        <!-- El número se actualiza dinámicamente (ej: SD-4582) -->
+        <strong id="order-num">SD-0000</strong>
+      </div>
+
+      <!-- Pasos del progreso del pedido -->
+      <!-- Cada paso se activa secuencialmente con simulateOrderProgress() -->
+      <div class="order-status-steps">
+
+        <!-- Paso 1: Pedido recibido (se activa inmediatamente) -->
+        <div class="status-step active">
+          <div class="status-dot">📋</div>
+          <div class="step-info">
+            <h4>Pedido Recibido</h4>
+            <p>Tu pedido fue registrado exitosamente</p>
+          </div>
+        </div>
+
+        <!-- Paso 2: En preparación (se activa a los 3 segundos) -->
+        <div class="status-step">
+          <div class="status-dot">👨‍🍳</div>
+          <div class="step-info">
+            <h4>En Preparación</h4>
+            <p>Nuestro chef está cocinando tu pedido</p>
+          </div>
+        </div>
+
+        <!-- Paso 3: Listo para servir (se activa a los 6 segundos) -->
+        <div class="status-step">
+          <div class="status-dot">🍽️</div>
+          <div class="step-info">
+            <h4>Listo para Servir</h4>
+            <p>Tu plato está listo</p>
+          </div>
+        </div>
+
+        <!-- Paso 4: Entregado (se activa a los 9 segundos) -->
+        <div class="status-step">
+          <div class="status-dot">✅</div>
+          <div class="step-info">
+            <h4>Entregado</h4>
+            <p>¡Buen provecho!</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Botón para ir a la pantalla de calificación -->
+      <button class="btn btn-primary" onclick="goToRating()" style="margin-top:24px">
+        ⭐ Calificar Experiencia
+      </button>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       PANTALLA 7: CALIFICACIÓN DE LA EXPERIENCIA
+       Sistema de estrellas interactivas con emojis dinámicos,
+       campo de comentarios y mensaje de agradecimiento.
+       ============================================================ -->
+  <section class="screen" id="rating">
+    <div class="rating-content">
+
+      <!-- Formulario de calificación (se oculta al enviar) -->
+      <div id="rating-form">
+
+        <!-- Emoji que cambia según la calificación seleccionada -->
+        <div class="rating-emoji" id="rating-emoji">🍽️</div>
+
+        <!-- Título y subtítulo -->
+        <h2>¿Cómo fue tu experiencia?</h2>
+        <p>Tu opinión nos ayuda a mejorar</p>
+
+        <!-- 5 estrellas clickeables -->
+        <!-- setRating(n) activa las estrellas del 1 al n -->
+        <div class="stars-container">
+          <span class="star" onclick="setRating(1)">⭐</span>
+          <span class="star" onclick="setRating(2)">⭐</span>
+          <span class="star" onclick="setRating(3)">⭐</span>
+          <span class="star" onclick="setRating(4)">⭐</span>
+          <span class="star" onclick="setRating(5)">⭐</span>
+        </div>
+
+        <!-- Label textual que describe la calificación (ej: "Excelente 🤩") -->
+        <div class="rating-label" id="rating-label"></div>
+
+        <!-- Campo de comentarios opcional -->
+        <textarea class="rating-comment" id="rating-comment" placeholder="Cuéntanos más sobre tu experiencia... (opcional)" rows="4"></textarea>
+
+        <!-- Botón para enviar la calificación -->
+        <button class="btn btn-primary btn-block" onclick="submitRating()">
+          Enviar Calificación ✨
+        </button>
+
+        <!-- Botón para reiniciar toda la experiencia -->
+        <button class="btn btn-secondary btn-block" onclick="restartExperience()" style="margin-top:10px">
+          🔄 Nueva Experiencia
+        </button>
+      </div>
+
+      <!-- Mensaje de agradecimiento (se muestra después de enviar) -->
+      <div class="rating-thanks" id="rating-thanks">
+        <div class="thanks-icon">🎉</div>
+        <h2>¡Muchas Gracias!</h2>
+        <p style="color:var(--text-secondary); margin:12px 0 32px;">
+          Tu opinión es muy valiosa para nosotros.<br>¡Esperamos verte pronto!
+        </p>
+        <!-- Botón para iniciar una nueva experiencia -->
+        <button class="btn btn-primary btn-block" onclick="restartExperience()">
+          🔄 Nueva Experiencia
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       NAVEGACIÓN INFERIOR FLOTANTE
+       Barra fija en la parte inferior de la pantalla
+       para navegar entre las 3 secciones principales:
+       Menú, Asistente y Pedido.
+       Solo se muestra en las pantallas de menú, asistente y carrito.
+       ============================================================ -->
+  <nav class="bottom-nav" id="bottom-nav" style="display:none">
+    <!-- display:none por defecto; se muestra al entrar al menú -->
+
+    <!-- Tab: Menú -->
+    <button class="nav-item active" data-screen="menu" onclick="showScreen('menu')">
+      <span class="nav-icon">📖</span>
+      Menú
+    </button>
+
+    <!-- Tab: Asistente Virtual -->
+    <button class="nav-item" data-screen="assistant" onclick="initAssistant()">
+      <span class="nav-icon">🤖</span>
+      Asistente
+    </button>
+
+    <!-- Tab: Carrito / Pedido -->
+    <button class="nav-item" data-screen="cart" onclick="renderCart(); showScreen('cart')">
+      <span class="nav-icon">🛒</span>
+      Pedido
+    </button>
+  </nav>
+
+  <!-- ============================================================
+       SCRIPTS DE LA APLICACIÓN
+       Se cargan al final del body para que el DOM ya esté listo.
+       Orden de carga importante:
+       1. data.js - Datos del menú y respuestas (se carga primero)
+       2. app.js  - Lógica de la aplicación (usa los datos)
+       ============================================================ -->
+  <script src="js/data.js"></script>  <!-- Base de datos del restaurante -->
+  <script src="js/app.js"></script>   <!-- Lógica principal de la app -->
+</body>
+</html>

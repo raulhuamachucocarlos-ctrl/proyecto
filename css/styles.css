@@ -1,0 +1,1879 @@
+/* =============================================
+   SABOR DIGITAL - Hoja de estilos principal
+   Restaurante con experiencia digital
+   
+   Estructura del archivo:
+   1. Fuentes externas (Google Fonts)
+   2. Variables CSS (colores, tipografía, etc.)
+   3. Reset y estilos base
+   4. Sistema de pantallas y animaciones
+   5. Pantalla de Bienvenida / QR
+   6. Pantalla de Menú Digital
+   7. Modal de Detalle del Plato
+   8. Pantalla del Asistente Virtual
+   9. Pantalla del Carrito
+   10. Pantalla de Pago
+   11. Pantalla de Confirmación
+   12. Pantalla de Calificación
+   13. Navegación inferior
+   14. Overlay de carga
+   15. Notificaciones toast
+   16. Responsive y scrollbar
+   ============================================= */
+
+/* --- 1. Importar fuentes de Google Fonts --- */
+/* Playfair Display: fuente serif elegante para títulos */
+/* Poppins: fuente sans-serif moderna para texto general */
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Poppins:wght@300;400;500;600;700&display=swap');
+
+/* =============================================
+   2. VARIABLES CSS (Custom Properties)
+   Definimos todos los valores reutilizables aquí
+   para mantener consistencia y facilitar cambios
+   ============================================= */
+:root {
+  /* --- Colores primarios --- */
+  --primary: #FF6B35;              /* Naranja cálido - color principal de la marca */
+  --primary-dark: #E55A2B;        /* Naranja oscuro - para hover y estados activos */
+  --primary-light: #FF8C5A;       /* Naranja claro - para acentos suaves */
+
+  /* --- Colores secundarios --- */
+  --secondary: #004E89;           /* Azul profundo - color secundario */
+  --secondary-light: #0066B3;     /* Azul más claro - para variaciones */
+
+  /* --- Color de acento --- */
+  --accent: #F7C948;              /* Dorado/amarillo - para destacar elementos */
+  --accent-dark: #E5B83D;         /* Dorado oscuro - para hover */
+
+  /* --- Fondos (tema oscuro) --- */
+  --bg-dark: #0F0F1A;             /* Fondo más oscuro - fondo principal */
+  --bg-surface: #1A1A2E;          /* Superficie - headers y barras */
+  --bg-card: #222240;             /* Tarjetas - fondo de cards */
+  --bg-elevated: #2A2A4A;         /* Elevado - elementos sobre cards */
+
+  /* --- Colores de texto --- */
+  --text-primary: #FFFFFF;        /* Texto principal - blanco */
+  --text-secondary: #A0A0C0;      /* Texto secundario - gris azulado */
+  --text-muted: #6B6B8D;          /* Texto tenue - para labels y hints */
+
+  /* --- Colores de estado --- */
+  --success: #2ECC71;             /* Verde - éxito, confirmación */
+  --danger: #E74C3C;              /* Rojo - error, eliminar */
+  --warning: #F39C12;             /* Amarillo - advertencia, alérgenos */
+
+  /* --- Efecto glassmorphism --- */
+  --glass: rgba(255, 255, 255, 0.05);       /* Fondo transparente tipo cristal */
+  --glass-border: rgba(255, 255, 255, 0.1); /* Borde sutil transparente */
+
+  /* --- Sombras --- */
+  --shadow: 0 8px 32px rgba(0, 0, 0, 0.3);     /* Sombra estándar */
+  --shadow-lg: 0 16px 48px rgba(0, 0, 0, 0.4); /* Sombra grande */
+
+  /* --- Bordes redondeados --- */
+  --radius: 16px;                 /* Radio estándar para cards */
+  --radius-sm: 10px;              /* Radio pequeño para botones */
+  --radius-full: 50px;            /* Radio completo para pills/badges */
+
+  /* --- Transiciones --- */
+  --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); /* Transición suave */
+
+  /* --- Tipografía --- */
+  --font-heading: 'Playfair Display', serif; /* Fuente para títulos */
+  --font-body: 'Poppins', sans-serif;       /* Fuente para texto general */
+}
+
+/* =============================================
+   3. RESET Y ESTILOS BASE
+   Elimina estilos por defecto del navegador
+   y establece una base consistente
+   ============================================= */
+
+/* Reset universal: elimina márgenes, padding y usa box-sizing border-box */
+*, *::before, *::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box; /* El ancho incluye padding y border */
+}
+
+/* Configuración base del HTML */
+html {
+  scroll-behavior: smooth;                    /* Scroll suave al navegar con anclas */
+  -webkit-tap-highlight-color: transparent;   /* Elimina el highlight azul en móviles */
+}
+
+/* Configuración base del body */
+body {
+  font-family: var(--font-body);    /* Fuente Poppins para todo el cuerpo */
+  background: var(--bg-dark);       /* Fondo oscuro principal */
+  color: var(--text-primary);       /* Texto blanco por defecto */
+  min-height: 100vh;                /* Mínimo ocupa toda la pantalla */
+  overflow-x: hidden;               /* Oculta scroll horizontal */
+  line-height: 1.6;                 /* Altura de línea para legibilidad */
+}
+
+/* =============================================
+   4. UTILIDADES Y SISTEMA DE PANTALLAS
+   ============================================= */
+
+/* Clase utilitaria para ocultar elementos */
+.hidden { display: none !important; }
+
+/* Contenedor centrado con ancho máximo (mobile-first) */
+.container {
+  max-width: 480px;    /* Ancho máximo tipo móvil */
+  margin: 0 auto;      /* Centrado horizontal */
+  padding: 0 20px;     /* Padding lateral */
+}
+
+/* --- Sistema de pantallas (SPA) --- */
+/* Todas las pantallas están ocultas por defecto */
+.screen {
+  display: none;
+  min-height: 100vh;        /* Cada pantalla ocupa al menos toda la ventana */
+  animation: fadeIn 0.4s ease; /* Animación al aparecer */
+}
+
+/* Solo la pantalla activa se muestra */
+.screen.active {
+  display: flex;
+  flex-direction: column;    /* Contenido en columna vertical */
+}
+
+/* --- Animaciones reutilizables --- */
+
+/* Aparecer con desvanecimiento y deslizamiento sutil */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Deslizar desde abajo (más pronunciado) */
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(40px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Escalar desde pequeño */
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.9); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+/* Pulso suave (para botones y badges) */
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+/* Flotación suave (para el logo y emojis) */
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+/* Rotación 3D completa (para efecto de plato 3D) */
+@keyframes spin3d {
+  0% { transform: perspective(600px) rotateY(0deg); }
+  100% { transform: perspective(600px) rotateY(360deg); }
+}
+
+/* Efecto shimmer/brillo (para loading) */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+/* Animación de puntos de escritura (chat typing) */
+@keyframes typing {
+  0%, 60% { opacity: 1; }
+  30% { opacity: 0.3; }
+}
+
+/* =============================================
+   5. PANTALLA 1: BIENVENIDA / QR
+   Primera pantalla que ve el cliente
+   con el código QR y selector de mesa
+   ============================================= */
+#welcome {
+  align-items: center;         /* Centra horizontalmente */
+  justify-content: center;     /* Centra verticalmente */
+  background: linear-gradient(135deg, var(--bg-dark) 0%, #1a0a2e 50%, var(--bg-dark) 100%); /* Degradado diagonal */
+  position: relative;
+  overflow: hidden;            /* Oculta los elementos decorativos que sobresalen */
+}
+
+/* Círculo decorativo superior derecho (efecto de luz naranja) */
+#welcome::before {
+  content: '';
+  position: absolute;
+  width: 400px;
+  height: 400px;
+  background: radial-gradient(circle, rgba(255, 107, 53, 0.15) 0%, transparent 70%);
+  top: -100px;
+  right: -100px;
+  border-radius: 50%;
+}
+
+/* Círculo decorativo inferior izquierdo (efecto de luz azul) */
+#welcome::after {
+  content: '';
+  position: absolute;
+  width: 300px;
+  height: 300px;
+  background: radial-gradient(circle, rgba(0, 78, 137, 0.15) 0%, transparent 70%);
+  bottom: -50px;
+  left: -50px;
+  border-radius: 50%;
+}
+
+/* Contenedor del contenido de bienvenida */
+.welcome-content {
+  text-align: center;
+  z-index: 1;      /* Por encima de los círculos decorativos */
+  padding: 40px 20px;
+}
+
+/* Logo emoji animado con efecto de flotación */
+.welcome-logo {
+  font-size: 64px;
+  margin-bottom: 16px;
+  animation: float 3s ease-in-out infinite; /* Flota constantemente */
+}
+
+/* Título con degradado de texto (naranja a dorado) */
+.welcome-title {
+  font-family: var(--font-heading);
+  font-size: 36px;
+  font-weight: 700;
+  margin-bottom: 8px;
+  /* Efecto de texto con degradado */
+  background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+  -webkit-background-clip: text;         /* Aplica el fondo solo al texto */
+  -webkit-text-fill-color: transparent;  /* Hace el texto transparente para ver el fondo */
+  background-clip: text;
+}
+
+/* Subtítulo debajo del nombre */
+.welcome-subtitle {
+  color: var(--text-secondary);
+  font-size: 14px;
+  margin-bottom: 40px;
+  font-weight: 300; /* Peso ligero para elegancia */
+}
+
+/* Contenedor del código QR (fondo blanco) */
+.qr-container {
+  background: white;
+  padding: 20px;
+  border-radius: var(--radius);
+  display: inline-block;
+  margin-bottom: 24px;
+  box-shadow: var(--shadow-lg);  /* Sombra grande para profundidad */
+  position: relative;
+}
+
+/* El canvas del QR se muestra como bloque para evitar espacio extra */
+.qr-container canvas {
+  display: block;
+}
+
+/* Texto debajo del QR con icono */
+.qr-label {
+  color: var(--text-secondary);
+  font-size: 13px;
+  margin-bottom: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;          /* Espacio entre icono y texto */
+}
+
+/* Icono del QR en color primario */
+.qr-label i {
+  color: var(--primary);
+}
+
+/* =============================================
+   BOTONES - Estilos compartidos
+   Sistema de botones reutilizable
+   ============================================= */
+
+/* Botón base - estilos comunes para todos los botones */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;                       /* Espacio entre icono y texto */
+  padding: 14px 32px;
+  border: none;
+  border-radius: var(--radius-full); /* Bordes completamente redondeados */
+  font-family: var(--font-body);
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);    /* Transición suave en todos los cambios */
+  text-decoration: none;
+  outline: none;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Botón primario (naranja) - acción principal */
+.btn-primary {
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+  color: white;
+  box-shadow: 0 4px 20px rgba(255, 107, 53, 0.4); /* Resplandor naranja */
+}
+
+/* Efecto hover: sube y aumenta resplandor */
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 28px rgba(255, 107, 53, 0.5);
+}
+
+/* Efecto al hacer click: vuelve a posición original */
+.btn-primary:active {
+  transform: translateY(0);
+}
+
+/* Botón secundario (transparente con borde) */
+.btn-secondary {
+  background: var(--glass);
+  color: var(--text-primary);
+  border: 1px solid var(--glass-border);
+  backdrop-filter: blur(10px);     /* Efecto de desenfoque detrás */
+}
+
+/* Hover: fondo ligeramente más visible */
+.btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* Botón de éxito (verde) - para confirmar acciones */
+.btn-success {
+  background: linear-gradient(135deg, var(--success) 0%, #27AE60 100%);
+  color: white;
+  box-shadow: 0 4px 20px rgba(46, 204, 113, 0.4); /* Resplandor verde */
+}
+
+/* Hover del botón de éxito */
+.btn-success:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 28px rgba(46, 204, 113, 0.5);
+}
+
+/* Botón de ancho completo */
+.btn-block {
+  width: 100%;
+}
+
+/* Botón pequeño */
+.btn-sm {
+  padding: 8px 18px;
+  font-size: 13px;
+}
+
+/* Botón circular solo con icono */
+.btn-icon {
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border-radius: 50%;
+}
+
+/* Selector de mesa */
+.table-selector {
+  margin-top: 20px;
+}
+
+/* Label del selector */
+.table-selector label {
+  color: var(--text-secondary);
+  font-size: 13px;
+  display: block;
+  margin-bottom: 8px;
+}
+
+/* Select estilizado con tema oscuro */
+.table-selector select {
+  background: var(--bg-card);
+  color: var(--text-primary);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-sm);
+  padding: 10px 16px;
+  font-family: var(--font-body);
+  font-size: 14px;
+  width: 120px;
+  cursor: pointer;
+  outline: none;
+}
+
+/* =============================================
+   6. PANTALLA 2: MENÚ DIGITAL
+   Muestra la carta con categorías,
+   búsqueda y tarjetas de platos
+   ============================================= */
+#menu {
+  background: var(--bg-dark);
+}
+
+/* Header del menú (sticky: se queda fijo al hacer scroll) */
+.menu-header {
+  background: linear-gradient(180deg, var(--bg-surface) 0%, var(--bg-dark) 100%);
+  padding: 20px 20px 16px;
+  position: sticky;   /* Se adhiere al tope al hacer scroll */
+  top: 0;
+  z-index: 100;       /* Por encima del contenido del menú */
+}
+
+/* Fila superior del header: título y acciones */
+.menu-header-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between; /* Título a la izquierda, botones a la derecha */
+  margin-bottom: 16px;
+}
+
+/* Título del menú */
+.menu-header-top h1 {
+  font-family: var(--font-heading);
+  font-size: 22px;
+}
+
+/* Contenedor de botones de acción (asistente y carrito) */
+.header-actions {
+  display: flex;
+  gap: 8px;
+}
+
+/* Botón circular del carrito/asistente */
+.cart-btn {
+  position: relative;              /* Para posicionar el badge */
+  background: var(--glass);
+  border: 1px solid var(--glass-border);
+  color: var(--text-primary);
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;             /* Circular */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: var(--transition);
+  font-size: 18px;
+}
+
+/* Hover del botón del carrito */
+.cart-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* Badge numérico del carrito (cantidad de items) */
+.cart-badge {
+  position: absolute;
+  top: -4px;                       /* Sobresale por arriba */
+  right: -4px;                     /* Sobresale por la derecha */
+  background: var(--primary);      /* Fondo naranja */
+  color: white;
+  font-size: 11px;
+  font-weight: 700;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;             /* Circular */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-body);
+}
+
+/* Ocultar badge cuando no hay items */
+.cart-badge.hidden { display: none; }
+
+/* --- Barra de búsqueda --- */
+.search-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--bg-card);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-full); /* Bordes redondeados tipo pill */
+  padding: 10px 16px;
+  margin-bottom: 16px;
+}
+
+/* Icono de búsqueda */
+.search-bar i {
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
+/* Input de búsqueda sin estilos por defecto */
+.search-bar input {
+  flex: 1;                         /* Ocupa todo el espacio disponible */
+  background: none;
+  border: none;
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: 14px;
+  outline: none;
+}
+
+/* Placeholder del input */
+.search-bar input::placeholder {
+  color: var(--text-muted);
+}
+
+/* --- Tabs de categorías (scroll horizontal) --- */
+.category-tabs {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;               /* Scroll horizontal si no caben */
+  scrollbar-width: none;          /* Oculta scrollbar en Firefox */
+  -ms-overflow-style: none;       /* Oculta scrollbar en IE/Edge */
+  padding-bottom: 4px;
+}
+
+/* Oculta scrollbar en Chrome/Safari */
+.category-tabs::-webkit-scrollbar { display: none; }
+
+/* Tab individual de categoría */
+.cat-tab {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  background: var(--bg-card);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-full);
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;             /* Evita que el texto se rompa en líneas */
+  transition: var(--transition);
+  font-family: var(--font-body);
+}
+
+/* Hover de tab */
+.cat-tab:hover {
+  background: var(--bg-elevated);
+}
+
+/* Tab activa/seleccionada */
+.cat-tab.active {
+  background: var(--primary);      /* Fondo naranja */
+  color: white;
+  border-color: var(--primary);
+}
+
+/* Emoji dentro del tab */
+.cat-tab .cat-emoji {
+  font-size: 16px;
+}
+
+/* --- Grid del menú --- */
+/* Contenedor del contenido del menú con padding inferior para la nav */
+.menu-content {
+  flex: 1;
+  padding: 0 20px 100px;          /* 100px abajo para la navegación flotante */
+}
+
+/* Grid responsive de 2 columnas para las tarjetas */
+.menu-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr; /* Dos columnas iguales */
+  gap: 14px;                       /* Espacio entre tarjetas */
+  margin-top: 16px;
+}
+
+/* --- Tarjeta de plato (Menu Card) --- */
+.menu-card {
+  background: var(--bg-card);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius);
+  overflow: hidden;                /* Recorta contenido que sobresale */
+  cursor: pointer;
+  transition: var(--transition);
+  animation: slideUp 0.4s ease backwards; /* Aparece deslizándose */
+}
+
+/* Hover de tarjeta: sube y muestra sombra */
+.menu-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow);
+  border-color: var(--primary);    /* Borde naranja al hover */
+}
+
+/* Delay de animación escalonado para cada tarjeta */
+/* Crea un efecto de cascada al cargar */
+.menu-card:nth-child(1) { animation-delay: 0.05s; }
+.menu-card:nth-child(2) { animation-delay: 0.1s; }
+.menu-card:nth-child(3) { animation-delay: 0.15s; }
+.menu-card:nth-child(4) { animation-delay: 0.2s; }
+.menu-card:nth-child(5) { animation-delay: 0.25s; }
+.menu-card:nth-child(6) { animation-delay: 0.3s; }
+
+/* Área de la imagen/emoji del plato */
+.card-image {
+  height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 56px;                 /* Emoji grande */
+  background: linear-gradient(135deg, var(--bg-elevated) 0%, var(--bg-card) 100%);
+  position: relative;              /* Para posicionar el tag */
+}
+
+/* Emoji del plato con transición 3D */
+.card-image .dish-3d {
+  transition: transform 0.6s ease;
+}
+
+/* Al hover, el emoji rota ligeramente en 3D */
+.menu-card:hover .dish-3d {
+  transform: perspective(600px) rotateY(15deg) scale(1.1);
+}
+
+/* Etiqueta/badge sobre la imagen (ej: "Popular", "Chef") */
+.card-tag {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: var(--primary);
+  color: white;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: var(--radius-full);
+}
+
+/* Cuerpo de la tarjeta (nombre y precio) */
+.card-body {
+  padding: 12px;
+}
+
+/* Nombre del plato (máximo 2 líneas con elipsis) */
+.card-body h3 {
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 4px;
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;           /* Máximo 2 líneas */
+  -webkit-box-orient: vertical;
+  overflow: hidden;                /* Corta texto que sobrepasa */
+}
+
+/* Fila de precio y rating */
+.card-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 8px;
+}
+
+/* Precio del plato en color primario */
+.card-price {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--primary);
+}
+
+/* Rating con estrella */
+.card-rating {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 12px;
+  color: var(--accent);            /* Color dorado */
+}
+
+/* =============================================
+   7. MODAL DE DETALLE DEL PLATO
+   Se abre al hacer click en una tarjeta
+   Muestra info completa, efecto 3D y botón de agregar
+   ============================================= */
+
+/* Fondo oscuro del modal (overlay) */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;                        /* Cubre toda la pantalla */
+  background: rgba(0, 0, 0, 0.7);  /* Fondo semi-transparente */
+  z-index: 1000;
+  align-items: flex-end;           /* Modal aparece desde abajo */
+  justify-content: center;
+  backdrop-filter: blur(4px);      /* Desenfoca el fondo */
+}
+
+/* Modal activo/visible */
+.modal-overlay.active {
+  display: flex;
+}
+
+/* Contenido del modal (sheet desde abajo) */
+.modal-content {
+  background: var(--bg-surface);
+  border-radius: 24px 24px 0 0;   /* Solo esquinas superiores redondeadas */
+  width: 100%;
+  max-width: 480px;
+  max-height: 90vh;                /* Máximo 90% de la pantalla */
+  overflow-y: auto;                /* Scroll si el contenido es muy largo */
+  animation: slideUp 0.3s ease;
+}
+
+/* Área de la imagen del plato en el modal */
+.modal-image {
+  height: 220px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 100px;                /* Emoji extra grande */
+  background: linear-gradient(135deg, var(--bg-elevated), var(--bg-card));
+  position: relative;
+  perspective: 800px;              /* Perspectiva para efecto 3D */
+}
+
+/* Emoji del plato con animación de flotación */
+.modal-image .dish-3d-detail {
+  animation: float 3s ease-in-out infinite;
+  cursor: grab;                    /* Cursor de agarre para indicar que se puede rotar */
+  transition: transform 0.3s ease;
+  user-select: none;               /* No se puede seleccionar el emoji */
+}
+
+/* Botón de cerrar modal (X) */
+.modal-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.5);
+  border: none;
+  color: white;
+  font-size: 18px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: var(--transition);
+  backdrop-filter: blur(10px);
+}
+
+/* Hover del botón cerrar */
+.modal-close:hover {
+  background: rgba(0, 0, 0, 0.7);
+}
+
+/* Badge de "Vista 3D" en la imagen */
+.view-3d-badge {
+  position: absolute;
+  bottom: 12px;
+  right: 12px;
+  background: rgba(0, 0, 0, 0.6);
+  color: white;
+  padding: 6px 12px;
+  border-radius: var(--radius-full);
+  font-size: 11px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  backdrop-filter: blur(10px);
+}
+
+/* Cuerpo del modal con la información */
+.modal-body {
+  padding: 24px 20px;
+}
+
+/* Título del plato en el modal */
+.modal-body h2 {
+  font-family: var(--font-heading);
+  font-size: 24px;
+  margin-bottom: 4px;
+}
+
+/* Contenedor de tags/etiquetas del plato */
+.dish-tags {
+  display: flex;
+  flex-wrap: wrap;                 /* Los tags pasan a la siguiente línea si no caben */
+  gap: 6px;
+  margin: 12px 0;
+}
+
+/* Tag individual (vegetariano, picante, etc.) */
+.dish-tag {
+  padding: 4px 10px;
+  background: var(--glass);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-full);
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
+/* Descripción del plato */
+.dish-description {
+  color: var(--text-secondary);
+  font-size: 14px;
+  line-height: 1.6;
+  margin-bottom: 16px;
+}
+
+/* Grid de información del plato (3 columnas) */
+.dish-info-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr); /* 3 columnas iguales */
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+/* Cada item de información (tiempo, calorías, rating) */
+.dish-info-item {
+  background: var(--bg-card);
+  border-radius: var(--radius-sm);
+  padding: 12px;
+  text-align: center;
+}
+
+/* Icono del item de info */
+.dish-info-item .info-icon {
+  font-size: 20px;
+  margin-bottom: 4px;
+}
+
+/* Valor del item de info */
+.dish-info-item .info-value {
+  font-size: 14px;
+  font-weight: 600;
+  display: block;
+}
+
+/* Label del item de info */
+.dish-info-item .info-label {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+/* --- Selector de cantidad --- */
+.quantity-selector {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+/* Botón de + y - para cantidad */
+.qty-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--bg-card);
+  border: 1px solid var(--glass-border);
+  color: var(--text-primary);
+  font-size: 18px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: var(--transition);
+}
+
+/* Hover del botón de cantidad */
+.qty-btn:hover {
+  background: var(--primary);
+  border-color: var(--primary);
+}
+
+/* Número de cantidad seleccionada */
+.qty-value {
+  font-size: 24px;
+  font-weight: 700;
+  min-width: 40px;
+  text-align: center;
+}
+
+/* Footer del modal con precio y botón agregar */
+.modal-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+/* Precio total en el modal */
+.modal-price {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--primary);
+}
+
+/* Símbolo de moneda más pequeño */
+.modal-price .price-currency {
+  font-size: 18px;
+}
+
+/* =============================================
+   8. PANTALLA DEL ASISTENTE VIRTUAL (Chat)
+   Interfaz de chat con el "Chef Digital"
+   ============================================= */
+#assistant {
+  background: var(--bg-dark);
+}
+
+/* Header del asistente con avatar e info */
+.assistant-header {
+  background: var(--bg-surface);
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-bottom: 1px solid var(--glass-border);
+}
+
+/* Avatar circular del asistente con degradado */
+.assistant-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--primary), var(--accent));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+}
+
+/* Nombre del asistente */
+.assistant-info h3 {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+/* Indicador de "En línea" con punto verde */
+.assistant-info span {
+  font-size: 12px;
+  color: var(--success);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Punto verde animado de "en línea" */
+.assistant-info span::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  background: var(--success);
+  border-radius: 50%;
+}
+
+/* Botón de volver al menú */
+.assistant-back {
+  margin-left: auto;              /* Se empuja a la derecha */
+}
+
+/* --- Área de mensajes del chat --- */
+.chat-messages {
+  flex: 1;                         /* Ocupa todo el espacio disponible */
+  overflow-y: auto;                /* Scroll vertical */
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;                       /* Espacio entre mensajes */
+}
+
+/* Burbuja de mensaje (base) */
+.chat-bubble {
+  max-width: 85%;                  /* No ocupa más del 85% del ancho */
+  padding: 12px 16px;
+  border-radius: 18px;
+  font-size: 14px;
+  line-height: 1.5;
+  animation: scaleIn 0.3s ease;    /* Aparece con animación */
+}
+
+/* Burbuja del bot (alineada a la izquierda) */
+.chat-bubble.bot {
+  background: var(--bg-card);
+  border: 1px solid var(--glass-border);
+  align-self: flex-start;         /* Se alinea a la izquierda */
+  border-bottom-left-radius: 4px; /* Esquina inferior izquierda más pequeña */
+}
+
+/* Burbuja del usuario (alineada a la derecha, fondo naranja) */
+.chat-bubble.user {
+  background: var(--primary);
+  color: white;
+  align-self: flex-end;           /* Se alinea a la derecha */
+  border-bottom-right-radius: 4px; /* Esquina inferior derecha más pequeña */
+}
+
+/* Hora del mensaje */
+.chat-bubble .bubble-time {
+  font-size: 10px;
+  color: var(--text-muted);
+  margin-top: 4px;
+  display: block;
+}
+
+/* Hora en burbujas del usuario (más clara) */
+.chat-bubble.user .bubble-time {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+/* --- Indicador de "escribiendo..." (3 puntos) --- */
+.typing-indicator {
+  display: flex;
+  gap: 4px;
+  padding: 12px 16px;
+  background: var(--bg-card);
+  border: 1px solid var(--glass-border);
+  border-radius: 18px;
+  border-bottom-left-radius: 4px;
+  align-self: flex-start;
+  max-width: 70px;
+}
+
+/* Cada punto del indicador */
+.typing-indicator span {
+  width: 8px;
+  height: 8px;
+  background: var(--text-muted);
+  border-radius: 50%;
+  animation: typing 1.4s infinite; /* Animación de parpadeo */
+}
+
+/* Delay escalonado para cada punto (efecto de onda) */
+.typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
+.typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
+
+/* --- Respuestas rápidas (botones de sugerencia) --- */
+.quick-replies {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;                 /* Se envuelven si no caben */
+  padding: 0 20px 8px;
+}
+
+/* Botón de respuesta rápida */
+.quick-reply {
+  padding: 8px 14px;
+  background: var(--bg-card);
+  border: 1px solid var(--primary); /* Borde naranja */
+  border-radius: var(--radius-full);
+  color: var(--primary);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: var(--transition);
+  font-family: var(--font-body);
+}
+
+/* Hover: se llena de naranja */
+.quick-reply:hover {
+  background: var(--primary);
+  color: white;
+}
+
+/* --- Área de input del chat --- */
+.chat-input-area {
+  padding: 12px 20px;
+  background: var(--bg-surface);
+  border-top: 1px solid var(--glass-border);
+  display: flex;
+  gap: 10px;
+}
+
+/* Input de texto del chat */
+.chat-input-area input {
+  flex: 1;
+  background: var(--bg-card);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-full);
+  padding: 12px 18px;
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: 14px;
+  outline: none;
+}
+
+/* Placeholder del input del chat */
+.chat-input-area input::placeholder {
+  color: var(--text-muted);
+}
+
+/* Focus: borde naranja */
+.chat-input-area input:focus {
+  border-color: var(--primary);
+}
+
+/* Botón de enviar mensaje */
+.send-btn {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--primary);
+  border: none;
+  color: white;
+  font-size: 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: var(--transition);
+}
+
+/* Hover del botón enviar */
+.send-btn:hover {
+  background: var(--primary-dark);
+  transform: scale(1.05);
+}
+
+/* =============================================
+   9. PANTALLA DEL CARRITO
+   Lista de items agregados, cantidades y total
+   ============================================= */
+#cart {
+  background: var(--bg-dark);
+}
+
+/* Header del carrito */
+.cart-header {
+  background: var(--bg-surface);
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--glass-border);
+}
+
+/* Título del carrito */
+.cart-header h2 {
+  font-family: var(--font-heading);
+  font-size: 20px;
+}
+
+/* Área scrolleable de items del carrito */
+.cart-items {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px;
+}
+
+/* Estado vacío del carrito */
+.cart-empty {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--text-muted);
+}
+
+/* Icono grande del carrito vacío */
+.cart-empty .empty-icon {
+  font-size: 60px;
+  margin-bottom: 16px;
+  opacity: 0.5;
+}
+
+/* Cada item del carrito */
+.cart-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: var(--bg-card);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius);
+  padding: 14px;
+  margin-bottom: 10px;
+  animation: slideUp 0.3s ease;
+}
+
+/* Emoji del item del carrito */
+.cart-item-emoji {
+  font-size: 36px;
+  width: 56px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-elevated);
+  border-radius: var(--radius-sm);
+  flex-shrink: 0;                  /* No se encoge */
+}
+
+/* Información del item (nombre y precio) */
+.cart-item-info {
+  flex: 1;
+  min-width: 0;                    /* Permite truncamiento de texto */
+}
+
+/* Nombre del item con elipsis si es muy largo */
+.cart-item-info h4 {
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Precio del item */
+.cart-item-info .item-price {
+  color: var(--primary);
+  font-weight: 600;
+  font-size: 14px;
+}
+
+/* Selector de cantidad en el carrito */
+.cart-item-qty {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Botones + y - del carrito */
+.cart-item-qty button {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--bg-elevated);
+  border: 1px solid var(--glass-border);
+  color: var(--text-primary);
+  font-size: 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: var(--transition);
+}
+
+/* Hover de botones de cantidad */
+.cart-item-qty button:hover {
+  background: var(--primary);
+  border-color: var(--primary);
+}
+
+/* Número de cantidad */
+.cart-item-qty span {
+  font-weight: 600;
+  min-width: 20px;
+  text-align: center;
+}
+
+/* Botón de eliminar item (basura roja) */
+.cart-item-remove {
+  color: var(--danger);
+  cursor: pointer;
+  font-size: 16px;
+  padding: 4px;
+  transition: var(--transition);
+  background: none;
+  border: none;
+}
+
+/* Hover: se agranda */
+.cart-item-remove:hover {
+  transform: scale(1.2);
+}
+
+/* --- Resumen del carrito (subtotal, impuestos, total) --- */
+.cart-summary {
+  background: var(--bg-surface);
+  border-top: 1px solid var(--glass-border);
+  padding: 20px;
+}
+
+/* Fila del resumen (subtotal, impuestos) */
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+/* Fila del total (más grande y destacada) */
+.summary-row.total {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--glass-border);
+}
+
+/* Precio total en color primario */
+.summary-row.total .total-price {
+  color: var(--primary);
+}
+
+/* =============================================
+   10. PANTALLA DE PAGO
+   Selección de método de pago y confirmación
+   ============================================= */
+#payment {
+  background: var(--bg-dark);
+}
+
+/* Header de la pantalla de pago */
+.payment-header {
+  background: var(--bg-surface);
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-bottom: 1px solid var(--glass-border);
+}
+
+/* Título de pago */
+.payment-header h2 {
+  font-family: var(--font-heading);
+  font-size: 20px;
+}
+
+/* Contenido scrolleable del pago */
+.payment-content {
+  flex: 1;
+  padding: 20px;
+}
+
+/* Card del resumen del pedido */
+.order-summary-card {
+  background: var(--bg-card);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius);
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+/* Título del resumen */
+.order-summary-card h3 {
+  font-size: 16px;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Fila de item en el resumen de pago */
+.order-item-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin-bottom: 6px;
+}
+
+/* Sección de métodos de pago */
+.payment-methods {
+  margin-bottom: 24px;
+}
+
+/* Título de métodos */
+.payment-methods h3 {
+  font-size: 16px;
+  margin-bottom: 12px;
+}
+
+/* Opción de método de pago (tarjeta, móvil, etc.) */
+.payment-option {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: var(--bg-card);
+  border: 2px solid var(--glass-border); /* Borde más grueso para selección */
+  border-radius: var(--radius);
+  padding: 16px;
+  margin-bottom: 10px;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+/* Hover: borde naranja */
+.payment-option:hover {
+  border-color: var(--primary);
+}
+
+/* Opción seleccionada: borde naranja y fondo tenue */
+.payment-option.selected {
+  border-color: var(--primary);
+  background: rgba(255, 107, 53, 0.08);
+}
+
+/* Icono del método de pago */
+.payment-option-icon {
+  font-size: 28px;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-elevated);
+  border-radius: var(--radius-sm);
+}
+
+/* Nombre del método de pago */
+.payment-option-info h4 {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+/* Descripción del método */
+.payment-option-info span {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+/* Círculo de check/selección */
+.payment-option .check-mark {
+  margin-left: auto;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 2px solid var(--glass-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  transition: var(--transition);
+}
+
+/* Check mark cuando está seleccionado */
+.payment-option.selected .check-mark {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: white;
+}
+
+/* =============================================
+   11. PANTALLA DE CONFIRMACIÓN DEL PEDIDO
+   Muestra el número de orden y progreso
+   ============================================= */
+#confirmation {
+  background: var(--bg-dark);
+  align-items: center;
+  justify-content: center;
+}
+
+/* Contenido centrado de la confirmación */
+.confirmation-content {
+  text-align: center;
+  padding: 40px 20px;
+  animation: scaleIn 0.5s ease;
+}
+
+/* Icono grande de confirmación (check verde) */
+.confirm-icon {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--success), #27AE60);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 48px;
+  margin: 0 auto 24px;
+  box-shadow: 0 8px 32px rgba(46, 204, 113, 0.3); /* Resplandor verde */
+  animation: pulse 2s infinite;    /* Pulsa constantemente */
+}
+
+/* Título de confirmación */
+.confirmation-content h2 {
+  font-family: var(--font-heading);
+  font-size: 28px;
+  margin-bottom: 8px;
+}
+
+/* Texto descriptivo */
+.confirmation-content p {
+  color: var(--text-secondary);
+  font-size: 14px;
+  margin-bottom: 24px;
+}
+
+/* Recuadro del número de orden */
+.order-number {
+  display: inline-block;
+  background: var(--bg-card);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius);
+  padding: 16px 32px;
+  margin-bottom: 24px;
+}
+
+/* Label "Número de orden" */
+.order-number span {
+  font-size: 12px;
+  color: var(--text-muted);
+  display: block;
+}
+
+/* El número de orden en grande */
+.order-number strong {
+  font-size: 28px;
+  color: var(--primary);
+  font-family: var(--font-heading);
+}
+
+/* --- Pasos del progreso del pedido --- */
+.order-status-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  text-align: left;
+  margin: 24px auto;
+  max-width: 280px;
+}
+
+/* Cada paso del progreso */
+.status-step {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 0;
+  position: relative;
+}
+
+/* Línea vertical conectora entre pasos */
+.status-step::before {
+  content: '';
+  position: absolute;
+  left: 15px;                      /* Centrado con el punto */
+  top: 36px;
+  width: 2px;
+  height: calc(100% - 24px);
+  background: var(--glass-border);
+}
+
+/* El último paso no tiene línea después */
+.status-step:last-child::before { display: none; }
+
+/* Punto/icono de cada paso */
+.status-dot {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--bg-card);
+  border: 2px solid var(--glass-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+/* Paso activo (en progreso): punto verde con pulso */
+.status-step.active .status-dot {
+  background: var(--success);
+  border-color: var(--success);
+  animation: pulse 2s infinite;
+}
+
+/* Paso completado: punto verde sin pulso */
+.status-step.completed .status-dot {
+  background: var(--success);
+  border-color: var(--success);
+}
+
+/* Título del paso */
+.status-step .step-info h4 {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+/* Descripción del paso */
+.status-step .step-info p {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+/* =============================================
+   12. PANTALLA DE CALIFICACIÓN
+   Sistema de estrellas y comentarios
+   ============================================= */
+#rating {
+  background: var(--bg-dark);
+  align-items: center;
+  justify-content: center;
+}
+
+/* Contenido centrado del rating */
+.rating-content {
+  text-align: center;
+  padding: 40px 20px;
+  width: 100%;
+  max-width: 400px;
+  animation: scaleIn 0.4s ease;
+}
+
+/* Emoji grande que cambia según la calificación */
+.rating-emoji {
+  font-size: 64px;
+  margin-bottom: 16px;
+  transition: var(--transition);
+}
+
+/* Título de la pantalla de rating */
+.rating-content h2 {
+  font-family: var(--font-heading);
+  font-size: 24px;
+  margin-bottom: 8px;
+}
+
+/* Subtítulo */
+.rating-content > p {
+  color: var(--text-secondary);
+  font-size: 14px;
+  margin-bottom: 32px;
+}
+
+/* Contenedor de las 5 estrellas */
+.stars-container {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 32px;
+}
+
+/* Cada estrella individual */
+.star {
+  font-size: 40px;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+  filter: grayscale(1) opacity(0.3); /* Gris y transparente por defecto */
+}
+
+/* Hover: se agranda */
+.star:hover {
+  transform: scale(1.2);
+}
+
+/* Estrella activa/seleccionada: color original */
+.star.active {
+  filter: none;                    /* Quita el filtro gris */
+  animation: pulse 0.3s ease;
+}
+
+/* Label textual de la calificación ("Bueno", "Excelente", etc.) */
+.rating-label {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--accent);
+  margin-bottom: 24px;
+  min-height: 24px;               /* Reserva espacio para evitar saltos */
+}
+
+/* Textarea para comentarios */
+.rating-comment {
+  width: 100%;
+  background: var(--bg-card);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius);
+  padding: 14px;
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: 14px;
+  resize: none;                    /* No se puede redimensionar */
+  outline: none;
+  margin-bottom: 24px;
+  min-height: 100px;
+}
+
+/* Focus: borde naranja */
+.rating-comment:focus {
+  border-color: var(--primary);
+}
+
+/* Placeholder del textarea */
+.rating-comment::placeholder {
+  color: var(--text-muted);
+}
+
+/* --- Pantalla de agradecimiento (después de enviar) --- */
+.rating-thanks {
+  display: none;                   /* Oculta por defecto */
+  text-align: center;
+  animation: scaleIn 0.5s ease;
+}
+
+/* Se muestra al enviar la calificación */
+.rating-thanks.active {
+  display: block;
+}
+
+/* Icono de agradecimiento */
+.thanks-icon {
+  font-size: 80px;
+  margin-bottom: 16px;
+}
+
+/* =============================================
+   13. NAVEGACIÓN INFERIOR (Flotante)
+   Barra de navegación fija en la parte inferior
+   para moverse entre Menú, Asistente y Pedido
+   ============================================= */
+.bottom-nav {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);     /* Centrado horizontal */
+  display: flex;
+  gap: 4px;
+  background: var(--bg-surface);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-full); /* Bordes completamente redondeados */
+  padding: 6px;
+  z-index: 500;                    /* Por encima del contenido */
+  backdrop-filter: blur(20px);     /* Efecto de desenfoque */
+  box-shadow: var(--shadow-lg);
+}
+
+/* Cada item de la navegación */
+.nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 8px 16px;
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  transition: var(--transition);
+  color: var(--text-muted);
+  font-size: 12px;
+  border: none;
+  background: none;
+  font-family: var(--font-body);
+}
+
+/* Icono del nav item */
+.nav-item i, .nav-item .nav-icon {
+  font-size: 18px;
+}
+
+/* Hover del nav item */
+.nav-item:hover {
+  color: var(--text-primary);
+}
+
+/* Nav item activo: fondo naranja */
+.nav-item.active {
+  background: var(--primary);
+  color: white;
+}
+
+/* =============================================
+   14. OVERLAY DE CARGA
+   Se muestra durante procesos como pago
+   ============================================= */
+.loading-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;                        /* Cubre toda la pantalla */
+  background: rgba(15, 15, 26, 0.9);
+  z-index: 2000;                   /* Por encima de todo */
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 20px;
+  backdrop-filter: blur(10px);
+}
+
+/* Overlay activo */
+.loading-overlay.active {
+  display: flex;
+}
+
+/* Spinner circular de carga */
+.loader {
+  width: 48px;
+  height: 48px;
+  border: 3px solid var(--glass-border);
+  border-top-color: var(--primary);  /* Solo el borde superior es naranja */
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite; /* Gira continuamente */
+}
+
+/* Animación de rotación del spinner */
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Texto del loading */
+.loading-overlay p {
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+/* =============================================
+   15. NOTIFICACIONES TOAST
+   Mensajes emergentes temporales en la esquina
+   ============================================= */
+
+/* Contenedor fijo en la esquina superior derecha */
+.toast-container {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 3000;                   /* Máxima prioridad visual */
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* Toast individual */
+.toast {
+  background: var(--bg-surface);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-sm);
+  padding: 12px 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  animation: slideUp 0.3s ease;
+  box-shadow: var(--shadow);
+  max-width: 320px;
+}
+
+/* Toast de éxito: borde izquierdo verde */
+.toast.success { border-left: 3px solid var(--success); }
+
+/* Toast de error: borde izquierdo rojo */
+.toast.error { border-left: 3px solid var(--danger); }
+
+/* Toast informativo: borde izquierdo azul */
+.toast.info { border-left: 3px solid var(--secondary); }
+
+/* =============================================
+   16. RESPONSIVE Y SCROLLBAR
+   Adaptaciones para diferentes tamaños de pantalla
+   ============================================= */
+
+/* Tablets: grid de 2 columnas (ya es el default) */
+@media (min-width: 480px) {
+  .menu-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Desktop: grid de 3 columnas */
+@media (min-width: 768px) {
+  .menu-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* --- Personalización del scrollbar (Chrome/Safari) --- */
+::-webkit-scrollbar {
+  width: 4px;                      /* Scrollbar delgado */
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;         /* Track invisible */
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--bg-elevated);  /* Thumb sutil */
+  border-radius: 4px;
+}
